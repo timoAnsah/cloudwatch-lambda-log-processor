@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template for CloudWatch Logs Subscription and Lambda processing
+
+Resources:
+  LogProcessorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: process-logs-lambda
+      Runtime: python3.9
+      Handler: log_processor.lambda_handler
+      Role: arn:aws:iam::430803951904:role/demo-lambda-role-72do3s20
+      Code:
+        S3Bucket: your-bucket-name
+        S3Key: lambda/log_processor.zip
+      Timeout: 10
+      MemorySize: 128
+
+  SubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      LogGroupName: /aws/lambda/log-generator
+      FilterPattern: '500'
+      DestinationArn: !GetAtt LogProcessorFunction.Arn
+
+Outputs:
+  LambdaFunctionArn:
+    Description: ARN of the Lambda log processor
+    Value: !GetAtt LogProcessorFunction.Arn
